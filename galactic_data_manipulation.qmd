@@ -5,23 +5,142 @@ format: html
 editor: visual
 ---
 
-## Quarto
+# The Force of dplyr: Navigating Star Wars Data 🌟 💣
 
-Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
+In this project, I will harness the power of star wars data which comes with dplyr package which is part of the tidyverse and perform awesome galactic data manipulation and rise to be the data jedi.
 
-## Running Code
+### Objectives:
 
-When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
-
-```{r}
-1 + 1
-```
-
-You can add options to executable code like this
+-   Creating filtered tables from the star wars data
+-   Joining data sets
+-   Performing mutating joins
+-   Looking at filtering joins
+-   Set operators
+-   Binding tables
 
 ```{r}
 #| echo: false
-2 * 2
+# load the packages to use
+
+library(dplyr)
+library(ggplot2)
+library(tidyr)
+library(magrittr)
+
 ```
 
-The `echo: false` option disables the printing of code (only output is displayed).
+View our the starwars data set we are to use
+
+```{r}
+View(starwars)
+
+#take a quick peek at the data
+glimpse(starwars)
+
+#explore its structure
+str(starwars)
+
+```
+
+#### Data dictionary (from R documention using the ?starwars) 🚀
+
+Star wars characters Description The original data, from SWAPI, the Star Wars API, https://swapi.py4e.com/, has been revised to reflect additional research into gender and sex determinations of characters.
+
+Format A tibble with 87 rows and 14 variable:
+
+1\. name: name of the character
+
+2\. height: Height(cm)
+
+3\. mass: weight(Kg)
+
+4.  hair_color, skin_color, hair, skin and eye colors
+
+5\. birth_year: Year born(BBY = Before Battle Yavin)
+
+6.  sex: The biological sex of the character, namely: name, female, hermaphroditic, or none(as in the case of Droids)
+
+7\. gender: The gender role or gender identity of the character as determined by their personality or the way they were programmed (as in the case for Droids)
+
+8.  home world: Name of home world
+
+9\. species: Name of species
+
+10\. films: List of films the character appeared in
+
+11\. vehicles: List of vehicles the character has piloted
+
+12\. star ships: List of star ships the character has piloted
+
+#### Obj_01: Creating filtered tables from the star wars data
+
+create a couple of filtered tables from the star wars data set which come with the dplyr package
+
+```{r}
+# first data set 
+human_droids <- starwars |> 
+  filter(species %in% c("Human", "Droid")) |> 
+  select(name, homeworld) |> 
+  print()
+  
+
+# second data set
+humans <- starwars |> 
+  filter(species == "Human") |> 
+  select(name, species) |> 
+  print()
+
+```
+
+#### Obj_02:Joining data sets
+
+The syntax for joins in dplyr works the same as for other tidyverse verbs You can either use form:
+
+1.verb(data1, data2) or
+
+2\. the pipe: data1 \|\> verb(data2) 😁
+
+```{r}
+#both option give the same output but using the pipe operator makes it neateR
+inner_join(human_droids, humans)
+
+# alternatively
+human_droids |> 
+  inner_join(humans)
+```
+
+#### 💡 Pointer
+
+::: callout-caution
+##### it’s important to note two key practices when joining data
+
+First, be careful when joining on missing data. Since missing values can match with other missing values, this can unintentionally create one-to-many or many-to-many relationships. Additionally, if missing data is not consistent across tables, it can lead to unintended row matches
+
+Second, try to avoid many-to-many joins. This occurs when the join column has duplicate values in both tables. In such cases, every row can match with multiple rows from the other table, significantly increasing the size of the resulting dataset. For example, if there are 10 duplicates in the join column of each table, the final result could expand to 100 rows (10x10)
+:::
+
+```{r}
+# joinig NAs
+inner_join(starwars |> 
+  filter(name == "C-3PO") |> 
+  select(name:hair_color), 
+  starwars, by = "hair_color")
+
+
+# many-many joins
+inner_join(starwars, starwars, by = "species")
+
+
+```
+
+::: {.callout-note appearance="simple"}
+#### ✔️ Good practice
+
+When your join key has the same name in both tables it's good practice to do so with by = " "
+
+```         
+inner_join(humans, humans_droids, by="name")
+```
+:::
+
+#### Obj_03: Performing mutating joins
