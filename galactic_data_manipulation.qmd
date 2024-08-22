@@ -144,3 +144,60 @@ inner_join(humans, humans_droids, by="name")
 :::
 
 #### Obj_03: Performing mutating joins
+
+**inner_join()** tells dplyr to only returns rows that are a match in tables to use and in which order. The first table,aka the 'left table' or 'table x' in our case the 'human_droids' table and the second table aka the 'right table' or 'table y' is 'humans' table.
+
+When we inner_join() the two tables, we get a data set that has all the rows from 'humans' data set, since all the rows from 'humans' are in 'humans_droids', and we gain an extra column 'species'.
+
+```{r}
+# inner_join
+human_droids |> 
+  inner_join(humans)
+
+```
+
+**left_join()** This approach retains all rows and columns from the first dataset while adding any new columns from the second dataset. When there’s a match on the join key, the corresponding values from the second dataset are added to the new columns. If there’s no match, the original row from the first dataset is preserved, and the new columns are filled with missing/NA values to indicate the absence of a match in the second dataset.
+
+```{r}
+# left_join()
+human_droids |> 
+  left_join(humans)
+
+```
+
+full_join() function, as its name implies, merges two tables completely. Unlike previous joins that retained only matching rows, full_join preserves all rows and columns from both tables. Since all the data from both tables is included, the distinction between the left and right tables becomes irrelevant.
+
+```{r}
+# full_join()
+
+human_droids |> 
+  full_join(humans, by = "name")
+
+```
+
+An interesting feature of full_join is that it can be adapted to perform a Cartesian or cross join. To achieve this, you use full_join as usual but set the by argument to character()
+
+```{r}
+
+human_droids |> 
+  full_join(humans, by = character())
+
+```
+
+Imagine we want to compare how similar each character's name is to every other character's. As we learned earlier, a cross join will generate every possible pairing of character names, resulting in 1,225 combinations. From there, we can calculate the edit distance between the names, remove duplicate pairs, and sort the results accordingly
+
+```{r}
+human_droids |> 
+  full_join(humans, by = character()) |> 
+  select(name.x, name.y) |> 
+  filter(name.x != name.y) |> 
+  rowwise() |> 
+  mutate(leven_dist = adist(name.x, name.y, ignore = T)[1],
+         key = paste(sort(c(name.x, name.y)), collapse = "<-->")) |> 
+  distinct(key, .keep_all = T) |> 
+  select(key, leven_dist) |> 
+  arrange(leven_dist)
+  
+```
+
+Observation: top 10 unique name pairings that are the most similar to each other
